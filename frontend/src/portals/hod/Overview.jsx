@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { adminApi } from '../../api/misc.api';
-import { Spinner } from '../../components/ui/Feedback';
+import { KpiSkeleton } from '../../components/ui/Feedback';
 import { LayoutDashboard, AlertTriangle, CheckCircle, Clock, BookOpen, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -14,8 +14,12 @@ export function HodOverview() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-24">
-        <Spinner size="lg" />
+      <div className="space-y-8 text-left">
+        <div>
+          <h2 className="text-xl font-bold text-slate-100 tracking-tight">Department Head Overview</h2>
+          <p className="text-xs text-slate-400 mt-1">Live triage metrics, SLA tracking, and faculty escalation management</p>
+        </div>
+        <KpiSkeleton count={4} />
       </div>
     );
   }
@@ -54,7 +58,7 @@ export function HodOverview() {
   return (
     <div className="space-y-8 text-left">
       <div>
-        <h2 className="text-xl font-bold text-slate-100">Department Head Overview</h2>
+        <h2 className="text-xl font-bold text-slate-100 tracking-tight">Department Head Overview</h2>
         <p className="text-xs text-slate-400 mt-1">Live triage metrics, SLA tracking, and faculty escalation management</p>
       </div>
 
@@ -66,23 +70,23 @@ export function HodOverview() {
             <Link
               key={kpi.label}
               to={kpi.link}
-              className="glass-panel p-5 rounded-2xl border border-slate-800 hover:border-slate-700 transition-all hover:scale-[1.01] block group"
+              className="glass-panel p-5 rounded-2xl border border-slate-800 hover:border-slate-700 hover-lift block group focus-ring"
             >
               <div className="flex items-center justify-between mb-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${kpi.color}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border shadow-inner ${kpi.color}`}>
                   <Icon className="w-5 h-5" />
                 </div>
-                <ArrowRight className="w-4 h-4 text-slate-600 group-hover:text-slate-300 transition-colors" />
+                <ArrowRight className="w-4 h-4 text-slate-500 group-hover:text-indigo-400 group-hover:translate-x-0.5 transition-all" />
               </div>
               <span className="text-xs font-semibold text-slate-400 block">{kpi.label}</span>
-              <span className="text-2xl font-extrabold text-slate-100 mt-1 block">{kpi.value}</span>
+              <span className="text-2xl font-extrabold text-slate-100 mt-1 block tracking-tight">{kpi.value}</span>
             </Link>
           );
         })}
       </div>
 
       {/* Quick Action summary banner */}
-      <div className="glass-panel p-6 rounded-2xl border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="glass-panel p-6 rounded-2xl border border-slate-800/90 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h3 className="text-sm font-bold text-slate-100">Average Department Response Time</h3>
           <p className="text-xs text-slate-400 mt-0.5">Faculty is resolving queries within ~3.8 hours on average.</p>
@@ -90,13 +94,13 @@ export function HodOverview() {
         <div className="flex items-center gap-2">
           <Link
             to="/hod/escalations"
-            className="px-4 py-2 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-500 text-white transition-colors"
+            className="px-4 py-2 rounded-lg text-xs font-bold bg-gradient-to-r from-rose-600 to-rose-500 hover:from-rose-500 hover:to-rose-400 text-white shadow-md shadow-rose-600/20 transition-all cursor-pointer focus-ring"
           >
             Review Escalations ({stats?.escalated_to_me ?? 0})
           </Link>
           <Link
             to="/hod/reports"
-            className="px-4 py-2 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-colors"
+            className="px-4 py-2 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all cursor-pointer focus-ring"
           >
             Export Report
           </Link>

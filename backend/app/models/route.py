@@ -21,3 +21,6 @@ class Route(Base):
     department = relationship("Department")
     course = relationship("Course")
     assignee = relationship("User", foreign_keys=[assigned_to], back_populates="assigned_routes")
+
+
+# (venv) PS C:\Users\USER\Downloads\fyp\fyp-project\backend> uvicorn app.main:app --reload

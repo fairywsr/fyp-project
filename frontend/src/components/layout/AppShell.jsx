@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
+// import SidebarPreview from '@/components/tailgrids/core/sidebar/SidebarPreview';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
 

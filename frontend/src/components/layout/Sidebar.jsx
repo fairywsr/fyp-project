@@ -75,12 +75,18 @@ export function Sidebar({ mobileOpen = false, onClose }) {
         </div>
 
         {/* Role badge */}
-        <div className="px-6 py-3 border-b border-slate-800/60 bg-slate-950/30">
-          <span className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold block">Active Portal</span>
+        <div className="px-5 py-3 border-b border-slate-800/80 bg-slate-950/40">
+          <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold block">Active Portal</span>
           <div className="flex items-center justify-between mt-1">
-            <span className="text-xs font-bold text-slate-200 capitalize flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <span className="text-xs font-bold text-slate-100 capitalize flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+              </span>
               {role} Workspace
+            </span>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono font-medium border border-slate-700/50">
+              v1.0
             </span>
           </div>
         </div>
@@ -95,14 +101,14 @@ export function Sidebar({ mobileOpen = false, onClose }) {
                 to={item.path}
                 onClick={onClose}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all ${
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-medium transition-all duration-150 ${
                     isActive
-                      ? 'bg-indigo-600/15 text-indigo-400 border border-indigo-500/30 shadow-sm'
-                      : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/60'
+                      ? 'relative bg-indigo-500/15 text-indigo-200 border border-indigo-500/30 font-semibold shadow-xs before:content-[""] before:absolute before:left-0 before:top-2 before:bottom-2 before:w-1 before:rounded-r before:bg-indigo-400 before:shadow-[0_0_8px_rgba(99,102,241,0.8)]'
+                      : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/50 hover:translate-x-0.5'
                   }`
                 }
               >
-                <Icon className="w-4 h-4 shrink-0" />
+                <Icon className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
                 <span>{item.label}</span>
               </NavLink>
             );

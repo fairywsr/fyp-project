@@ -76,12 +76,13 @@ export function SubmitQuery() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4 text-left">
+      <form onSubmit={handleSubmit} className="glass-panel p-6 sm:p-8 rounded-2xl border border-slate-800/90 shadow-xl space-y-5 text-left">
         <Input
-          label="Subject (Optional)"
+          label="Subject"
           placeholder="e.g. CS619 Final Project viva schedule clarification"
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
+          helperText="A clear summary helps route your inquiry faster."
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -90,7 +91,7 @@ export function SubmitQuery() {
             value={deptId}
             onChange={(e) => { setDeptId(e.target.value); setCourseId(''); }}
           >
-            <option value="">Auto-Detect via AI / Rules</option>
+            <option value="">⚡ Auto-Detect via AI / Rules</option>
             {departments.map((d) => (
               <option key={d.id} value={d.id}>{d.name} ({d.code})</option>
             ))}
@@ -109,7 +110,7 @@ export function SubmitQuery() {
         </div>
 
         <Textarea
-          label="Query Description *"
+          label="Query Description"
           rows={6}
           placeholder="Please describe your query in detail. Include course codes, deadline dates, or specific questions..."
           required
@@ -117,17 +118,20 @@ export function SubmitQuery() {
           onChange={(e) => setText(e.target.value)}
         />
 
-        <div className="p-4 bg-slate-900/60 rounded-xl border border-dashed border-slate-700/80 text-center">
-          <Upload className="w-6 h-6 text-slate-500 mx-auto mb-2" />
+        <div className="p-5 bg-slate-900/60 rounded-xl border border-dashed border-slate-700/80 text-center hover:border-indigo-500/50 transition-colors cursor-pointer group">
+          <Upload className="w-6 h-6 text-slate-500 group-hover:text-indigo-400 mx-auto mb-2 transition-colors" />
           <span className="text-xs font-semibold text-slate-300 block">Optional Document or Screenshot</span>
-          <span className="text-[10px] text-slate-500 block mt-0.5">PDF, PNG, JPG up to 10MB</span>
+          <span className="text-[10px] text-slate-500 block mt-0.5 font-mono">PDF, PNG, JPG up to 10MB</span>
         </div>
 
-        <div className="flex justify-end pt-2">
+        <div className="flex items-center justify-between pt-3 border-t border-slate-800/80">
+          <span className="text-xs text-slate-400">
+            Powered by automated Gemini triage & faculty SLA tracking.
+          </span>
           <Button
             type="submit"
             variant="primary"
-            size="lg"
+            size="md"
             isLoading={submitMutation.isPending}
             icon={Send}
           >

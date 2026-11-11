@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { announcementsApi } from '../../api/misc.api';
 import { formatDate } from '../../lib/format';
-import { EmptyState, Spinner } from '../../components/ui/Feedback';
+import { EmptyState, CardSkeleton } from '../../components/ui/Feedback';
 import { Megaphone, Calendar } from 'lucide-react';
 
 export function StudentAnnouncements() {
@@ -13,8 +13,12 @@ export function StudentAnnouncements() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-24">
-        <Spinner size="lg" />
+      <div className="max-w-4xl mx-auto space-y-6 text-left">
+        <div>
+          <h2 className="text-xl font-bold text-slate-100 tracking-tight">University & Department Announcements</h2>
+          <p className="text-xs text-slate-400 mt-1">Broadcasts and notifications from administration and faculty</p>
+        </div>
+        <CardSkeleton count={3} />
       </div>
     );
   }
@@ -22,7 +26,7 @@ export function StudentAnnouncements() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 text-left">
       <div>
-        <h2 className="text-xl font-bold text-slate-100">University & Department Announcements</h2>
+        <h2 className="text-xl font-bold text-slate-100 tracking-tight">University & Department Announcements</h2>
         <p className="text-xs text-slate-400 mt-1">Broadcasts and notifications from administration and faculty</p>
       </div>
 
@@ -35,18 +39,18 @@ export function StudentAnnouncements() {
       ) : (
         <div className="space-y-4">
           {announcements.map((a) => (
-            <div key={a.id} className="glass-panel p-5 rounded-2xl border border-slate-800 space-y-2">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-800/60">
+            <div key={a.id} className="glass-panel p-5 sm:p-6 rounded-2xl border border-slate-800 hover:border-slate-700/80 hover-lift shadow-lg space-y-3">
+              <div className="flex items-center justify-between pb-2.5 border-b border-slate-800/60">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider">
+                  <span className="text-xs font-bold text-indigo-300 uppercase tracking-wider px-2 py-0.5 rounded bg-indigo-500/15 border border-indigo-500/30">
                     {a.audience} Announcement
                   </span>
                   {a.creator_name && (
-                    <span className="text-xs text-slate-500">• Posted by {a.creator_name}</span>
+                    <span className="text-xs text-slate-400">• Posted by {a.creator_name}</span>
                   )}
                 </div>
-                <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                  <Calendar className="w-3.5 h-3.5" />
+                <div className="flex items-center gap-1.5 text-xs text-slate-400 font-mono">
+                  <Calendar className="w-3.5 h-3.5 text-slate-500" />
                   <span>{formatDate(a.created_at)}</span>
                 </div>
               </div>

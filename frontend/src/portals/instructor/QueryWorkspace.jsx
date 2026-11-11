@@ -7,7 +7,7 @@ import { QueryThread } from '../../components/query/QueryThread';
 import { AiDraftPanel } from '../../components/query/AiDraftPanel';
 import { ReplyEditor } from '../../components/query/ReplyEditor';
 import { StatusBadge, PriorityBadge } from '../../components/query/Badges';
-import { Spinner } from '../../components/ui/Feedback';
+import { Skeleton } from '../../components/ui/Feedback';
 import { ArrowLeft, User, Mail, Calendar } from 'lucide-react';
 import { formatDate } from '../../lib/format';
 
@@ -39,8 +39,17 @@ export function InstructorQueryWorkspace() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-24">
-        <Spinner size="lg" />
+      <div className="space-y-6 max-w-4xl mx-auto text-left">
+        <div className="flex items-center gap-3 pb-4 border-b border-slate-800">
+          <Skeleton className="w-10 h-10 rounded-lg" />
+          <div className="space-y-2 flex-1">
+            <Skeleton className="w-48 h-4" />
+            <Skeleton className="w-72 h-6" />
+          </div>
+        </div>
+        <Skeleton className="w-full h-12 rounded-xl" />
+        <Skeleton className="w-full h-48 rounded-2xl" />
+        <Skeleton className="w-full h-32 rounded-2xl" />
       </div>
     );
   }

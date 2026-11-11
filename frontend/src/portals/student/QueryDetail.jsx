@@ -5,7 +5,7 @@ import { queriesApi } from '../../api/queries.api';
 import { QueryThread } from '../../components/query/QueryThread';
 import { StatusBadge, PriorityBadge } from '../../components/query/Badges';
 import { Button } from '../../components/ui/Button';
-import { Modal, Spinner } from '../../components/ui/Feedback';
+import { Modal, Skeleton } from '../../components/ui/Feedback';
 import { Textarea } from '../../components/ui/Input';
 import { ArrowLeft, AlertTriangle, CheckCircle, Clock } from 'lucide-react';
 
@@ -42,8 +42,28 @@ export function StudentQueryDetail() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-24">
-        <Spinner size="lg" />
+      <div className="space-y-6 max-w-4xl mx-auto text-left">
+        <div className="flex items-center gap-3 pb-4 border-b border-slate-800">
+          <Skeleton className="w-10 h-10 rounded-lg" />
+          <div className="space-y-2 flex-1">
+            <Skeleton className="w-48 h-4" />
+            <Skeleton className="w-72 h-6" />
+          </div>
+        </div>
+        <div className="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4">
+          <div className="flex justify-between items-center pb-3 border-b border-slate-800/80">
+            <div className="flex items-center gap-3">
+              <Skeleton className="w-10 h-10 rounded-full" />
+              <div className="space-y-1.5">
+                <Skeleton className="w-32 h-4" />
+                <Skeleton className="w-24 h-3" />
+              </div>
+            </div>
+            <Skeleton className="w-20 h-4" />
+          </div>
+          <Skeleton className="w-3/4 h-5" />
+          <Skeleton className="w-full h-16" />
+        </div>
       </div>
     );
   }

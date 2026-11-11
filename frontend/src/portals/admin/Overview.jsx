@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { adminApi } from '../../api/misc.api';
-import { Spinner } from '../../components/ui/Feedback';
+import { KpiSkeleton, Skeleton } from '../../components/ui/Feedback';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import {
   FileText,
@@ -22,8 +22,12 @@ export function AdminOverview() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-24">
-        <Spinner size="lg" />
+      <div className="space-y-8 text-left">
+        <div>
+          <h2 className="text-xl font-bold text-slate-100 tracking-tight">System Analytics & Query Triage KPIs</h2>
+          <p className="text-xs text-slate-400 mt-1">Cross-departmental query volume, automated routing accuracy, and SLA adherence</p>
+        </div>
+        <KpiSkeleton count={4} />
       </div>
     );
   }
@@ -64,7 +68,7 @@ export function AdminOverview() {
   return (
     <div className="space-y-8 text-left">
       <div>
-        <h2 className="text-xl font-bold text-slate-100">System Analytics & Query Triage KPIs</h2>
+        <h2 className="text-xl font-bold text-slate-100 tracking-tight">System Analytics & Query Triage KPIs</h2>
         <p className="text-xs text-slate-400 mt-1">Cross-departmental query volume, automated routing accuracy, and SLA adherence</p>
       </div>
 
@@ -75,15 +79,15 @@ export function AdminOverview() {
           return (
             <div
               key={kpi.label}
-              className="glass-panel p-5 rounded-2xl border border-slate-800"
+              className="glass-panel p-5 rounded-2xl border border-slate-800 hover:border-slate-700 hover-lift shadow-lg"
             >
               <div className="flex items-center justify-between mb-3">
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${kpi.color}`}>
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center border shadow-inner ${kpi.color}`}>
                   <Icon className="w-5 h-5" />
                 </div>
               </div>
               <span className="text-xs font-semibold text-slate-400 block">{kpi.label}</span>
-              <span className="text-2xl font-extrabold text-slate-100 mt-1 block">{kpi.value}</span>
+              <span className="text-2xl font-extrabold text-slate-100 mt-1 block tracking-tight">{kpi.value}</span>
             </div>
           );
         })}
