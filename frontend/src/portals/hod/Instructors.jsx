@@ -3,7 +3,37 @@ import { useQuery } from '@tanstack/react-query';
 import { departmentsApi } from '../../api/academic.api';
 import { useAuth } from '../../features/auth/AuthContext';
 import { Spinner } from '../../components/ui/Feedback';
-import { Users, Mail, Clock } from 'lucide-react';
+import { Clock, Wifi, WifiOff, AlertCircle } from 'lucide-react';
+
+const AVAILABILITY_CONFIG = {
+  available: {
+    label: 'Available',
+    dot: 'bg-emerald-400',
+    badge: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/25',
+    icon: Wifi,
+    iconColor: 'text-emerald-400',
+    cardBorder: 'border-slate-800',
+    cardBg: 'bg-slate-900/60',
+  },
+  away: {
+    label: 'Away',
+    dot: 'bg-amber-400',
+    badge: 'bg-amber-500/15 text-amber-300 border-amber-500/25',
+    icon: Clock,
+    iconColor: 'text-amber-400',
+    cardBorder: 'border-amber-500/20',
+    cardBg: 'bg-amber-950/5',
+  },
+  on_leave: {
+    label: 'On Leave',
+    dot: 'bg-rose-500',
+    badge: 'bg-rose-500/15 text-rose-300 border-rose-500/25',
+    icon: WifiOff,
+    iconColor: 'text-rose-400',
+    cardBorder: 'border-rose-500/30',
+    cardBg: 'bg-rose-950/10',
+  },
+};
 
 export function HodInstructors() {
   const { user } = useAuth();
@@ -15,6 +45,7 @@ export function HodInstructors() {
     refetchInterval: 20000,
   });
 
+  /* ── Loading ───────────────────────────────────────────── */
   if (isLoading) {
     return (
       <div className="flex justify-center items-center py-24">
@@ -23,71 +54,126 @@ export function HodInstructors() {
     );
   }
 
+  const onLeaveCount = instructors.filter((i) => i.availability === 'on_leave').length;
+  const totalOpen = instructors.reduce((acc, i) => acc + (i.open_queries_count || 0), 0);
+
+  /* ── Render ────────────────────────────────────────────── */
   return (
-    <div className="space-y-6 text-left">
-      <div>
-        <h2 className="text-xl font-bold text-slate-100">Faculty Workload & Availability Monitor</h2>
-        <p className="text-xs text-slate-400 mt-1">
-          Monitor open queries, leave status, and capacity across your departmental faculty
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {instructors.map((inst) => {
-          const isLeave = inst.availability === 'on_leave';
-          const isAway = inst.availability === 'away';
-          return (
-            <div
-              key={inst.id}
-              className={`glass-panel p-5 rounded-2xl border transition-all ${
-                isLeave
-                  ? 'border-rose-500/30 bg-rose-950/10'
-                  : 'border-slate-800 hover:border-slate-700'
-              }`}
-            >
-              <div className="flex items-center justify-between pb-3 border-b border-slate-800/80 mb-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center font-bold text-sm">
-                    {inst.full_name ? inst.full_name.charAt(0) : 'I'}
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-100">{inst.full_name}</h3>
-                    <span className="text-[10px] text-slate-400 block">{inst.email}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Current Status:</span>
-                  <span
-                    className={`font-semibold capitalize px-2 py-0.5 rounded-full text-[10px] ${
-                      isLeave
-                        ? 'bg-rose-500/20 text-rose-300'
-                        : isAway
-                        ? 'bg-amber-500/20 text-amber-300'
-                        : 'bg-emerald-500/20 text-emerald-300'
-                    }`}
-                  >
-                    {inst.availability.replace('_', ' ')}
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Open Queries:</span>
-                  <span className="font-bold text-slate-100 text-sm">{inst.open_queries_count}</span>
-                </div>
-              </div>
-
-              {isLeave && (
-                <div className="mt-3 pt-2 border-t border-rose-500/20 text-[11px] text-rose-300 flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" /> Course queries are rerouting to HOD
-                </div>
-              )}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-slate-100 tracking-tight">
+            Faculty Workload Monitor
+          </h2>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Live availability and open query counts across departmental faculty
+          </p>
+        </div>
+        <div className="flex items-center gap-4 text-right shrink-0">
+          <div>
+            <span className="text-lg font-bold text-slate-100">{totalOpen}</span>
+            <span className="text-[11px] text-slate-500 block">total open</span>
+          </div>
+          {onLeaveCount > 0 && (
+            <div>
+              <span className="text-lg font-bold text-rose-400">{onLeaveCount}</span>
+              <span className="text-[11px] text-slate-500 block">on leave</span>
             </div>
-          );
-        })}
+          )}
+        </div>
       </div>
+
+      {/* Faculty grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {instructors.map((inst) => (
+          <InstructorCard key={inst.id} instructor={inst} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ── Instructor card ────────────────────────────────────────── */
+function InstructorCard({ instructor: inst }) {
+  const cfg = AVAILABILITY_CONFIG[inst.availability] || AVAILABILITY_CONFIG.available;
+  const Icon = cfg.icon;
+  const initials = inst.full_name
+    ? inst.full_name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
+        .slice(0, 2)
+        .toUpperCase()
+    : 'IN';
+
+  /* workload bar: scale 0-10 open queries = 0-100% */
+  const workloadPct = Math.min((inst.open_queries_count / 10) * 100, 100);
+  const workloadColor =
+    workloadPct > 70
+      ? 'bg-rose-500'
+      : workloadPct > 40
+      ? 'bg-amber-400'
+      : 'bg-emerald-400';
+
+  return (
+    <div
+      className={`flex flex-col gap-4 p-5 rounded-2xl border transition-colors ${cfg.cardBorder} ${cfg.cardBg}`}
+    >
+      {/* Avatar + name */}
+      <div className="flex items-center gap-3">
+        <div className="relative shrink-0">
+          <div className="w-11 h-11 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold text-sm">
+            {initials}
+          </div>
+          {/* Status dot */}
+          <span
+            className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-slate-900 ${cfg.dot}`}
+          />
+        </div>
+        <div className="min-w-0">
+          <h3 className="text-sm font-bold text-slate-100 truncate">{inst.full_name}</h3>
+          <span className="text-[11px] text-slate-500 truncate block">{inst.email}</span>
+        </div>
+      </div>
+
+      {/* Status badge + icon */}
+      <div className="flex items-center justify-between">
+        <span
+          className={`inline-flex items-center gap-1.5 text-[11px] font-bold capitalize px-2.5 py-1 rounded-full border ${cfg.badge}`}
+        >
+          <Icon className={`w-3 h-3 ${cfg.iconColor}`} />
+          {cfg.label}
+        </span>
+        <div className="text-right">
+          <span className="text-lg font-black text-slate-100">{inst.open_queries_count}</span>
+          <span className="text-[10px] text-slate-500 block">open queries</span>
+        </div>
+      </div>
+
+      {/* Workload bar */}
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider">
+            Workload
+          </span>
+          <span className="text-[10px] text-slate-500">{inst.open_queries_count} / 10</span>
+        </div>
+        <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all duration-500 ${workloadColor}`}
+            style={{ width: `${workloadPct}%` }}
+          />
+        </div>
+      </div>
+
+      {/* On-leave warning */}
+      {inst.availability === 'on_leave' && (
+        <div className="flex items-center gap-1.5 text-[11px] text-rose-300 pt-1 border-t border-rose-500/15">
+          <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+          Course queries are rerouting to HOD
+        </div>
+      )}
     </div>
   );
 }

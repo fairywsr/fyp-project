@@ -6,18 +6,16 @@
   --font-mono: "JetBrains Mono", monospace;
 }
 
-@import "tailwindcss";
+/* NOTE: duplicate @import "tailwindcss" and duplicate reset blocks removed */
 
 @layer base {
-  * {
+  *,
+  ::before,
+  ::after {
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
 }
 
 :root {
@@ -57,11 +55,7 @@
   --radius-xl: 24px;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/* duplicate bare reset removed — handled in @layer base above */
 
 body {
   font-family: var(--font-sans);
