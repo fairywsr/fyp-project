@@ -8,7 +8,7 @@ import { AiDraftPanel } from '../../components/query/AiDraftPanel';
 import { ReplyEditor } from '../../components/query/ReplyEditor';
 import { StatusBadge, PriorityBadge } from '../../components/query/Badges';
 import { Skeleton } from '../../components/ui/Feedback';
-import { ArrowLeft, User, Mail, Calendar } from 'lucide-react';
+import { ArrowLeft, User, Mail, Calendar, Hash } from 'lucide-react';
 import { formatDate } from '../../lib/format';
 
 export function InstructorQueryWorkspace() {
@@ -37,69 +37,100 @@ export function InstructorQueryWorkspace() {
     setAppliedDraftId(draftId);
   };
 
+  /* ── Loading skeleton ───────────────────────────────────── */
   if (isLoading) {
     return (
-      <div className="space-y-6 max-w-4xl mx-auto text-left">
-        <div className="flex items-center gap-3 pb-4 border-b border-slate-800">
-          <Skeleton className="w-10 h-10 rounded-lg" />
+      <div className="space-y-5 max-w-4xl mx-auto">
+        {/* Back + header skeleton */}
+        <div className="flex items-center gap-3 pb-5 border-b border-slate-800">
+          <Skeleton className="w-9 h-9 rounded" />
           <div className="space-y-2 flex-1">
-            <Skeleton className="w-48 h-4" />
-            <Skeleton className="w-72 h-6" />
+            <Skeleton className="w-40 h-3.5" />
+            <Skeleton className="w-64 h-5" />
           </div>
         </div>
-        <Skeleton className="w-full h-12 rounded-xl" />
-        <Skeleton className="w-full h-48 rounded-2xl" />
-        <Skeleton className="w-full h-32 rounded-2xl" />
+        <Skeleton className="w-full h-14 rounded-xl" />
+        <Skeleton className="w-full h-52 rounded-2xl" />
+        <Skeleton className="w-full h-36 rounded-2xl" />
       </div>
     );
   }
 
   if (!query) {
-    return <div className="text-center py-12 text-slate-400">Query not found</div>;
-  }
-
-  return (
-    <div className="space-y-6 max-w-4xl mx-auto text-left">
-      {/* Header */}
-      <div className="flex items-center gap-3 pb-4 border-b border-slate-800">
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-slate-500 gap-2">
+        <span className="text-4xl">🔍</span>
+        <p className="text-sm font-medium">Query not found</p>
         <button
           onClick={() => navigate('/instructor')}
-          className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+          className="mt-2 text-xs text-indigo-400 hover:underline cursor-pointer"
         >
-          <ArrowLeft className="w-5 h-5" />
+          ← Back to dashboard
         </button>
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono font-bold text-slate-400">Query #{query.id}</span>
+      </div>
+    );
+  }
+
+  /* ── Main render ────────────────────────────────────────── */
+  return (
+    <div className="space-y-5 max-w-4xl mx-auto">
+
+      {/* ── Header ─────────────────────────────────────────── */}
+      <div className="flex items-start gap-3 pb-5 border-b border-slate-800/80">
+        <button
+          onClick={() => navigate('/instructor')}
+          className="mt-0.5 p-2 rounded-lg text-slate-500 hover:text-slate-200 hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+          aria-label="Back to dashboard"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </button>
+
+        <div className="flex-1 min-w-0">
+          {/* Badges row */}
+          <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+            <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-slate-500 bg-slate-800 px-2 py-0.5 rounded border border-slate-700/60">
+              <Hash className="w-2.5 h-2.5" />
+              {query.id}
+            </span>
             <StatusBadge status={query.status} />
             <PriorityBadge priority={query.priority} />
             {query.course_code && (
-              <span className="text-xs bg-indigo-500/10 text-indigo-400 font-bold px-2 py-0.5 rounded border border-indigo-500/20">
+              <span className="text-[11px] bg-indigo-500/10 text-indigo-300 font-bold px-2 py-0.5 rounded border border-indigo-500/20">
                 {query.course_code}
               </span>
             )}
           </div>
-          <h1 className="text-lg font-bold text-slate-100 mt-1">{query.subject}</h1>
+          <h1 className="text-lg font-bold text-slate-100 leading-snug truncate">
+            {query.subject}
+          </h1>
         </div>
       </div>
 
-      {/* Student info strip */}
-      <div className="glass-panel p-4 rounded-xl border border-slate-800 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-400">
-        <div className="flex items-center gap-2">
-          <User className="w-4 h-4 text-slate-500" />
-          <span>Student: <strong className="text-slate-200">{query.student_name}</strong></span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Mail className="w-4 h-4 text-slate-500" />
-          <span>{query.student_email}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-slate-500" />
-          <span>Received: {formatDate(query.created_at)}</span>
-        </div>
+      {/* ── Student info strip ─────────────────────────────── */}
+      <div className="grid grid-cols-3 gap-px rounded-xl overflow-hidden border border-slate-800 bg-slate-800">
+        {[
+          { icon: User, label: 'Student', value: query.student_name },
+          { icon: Mail, label: 'Email', value: query.student_email },
+          { icon: Calendar, label: 'Received', value: formatDate(query.created_at) },
+        ].map(({ icon: Icon, label, value }) => (
+          <div
+            key={label}
+            className="flex items-center gap-3 px-4 py-3 bg-slate-900/70"
+          >
+            <Icon className="w-4 h-4 text-slate-600 shrink-0" />
+            <div className="min-w-0">
+              <span className="text-[10px] uppercase tracking-wider font-semibold text-slate-600 block">
+                {label}
+              </span>
+              <span className="text-xs font-semibold text-slate-200 truncate block">
+                {value}
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {/* AI Draft Suggestion Panel */}
+      {/* ── AI Draft panel ─────────────────────────────────── */}
       {query.ai_draft && (
         <AiDraftPanel
           draft={query.ai_draft}
@@ -107,16 +138,18 @@ export function InstructorQueryWorkspace() {
         />
       )}
 
-      {/* Query thread history */}
+      {/* ── Query thread ───────────────────────────────────── */}
       <QueryThread query={query} replies={query.replies} />
 
-      {/* Reply editor */}
-      <div className="pt-2">
-        <h3 className="text-sm font-bold text-slate-200 mb-3 uppercase tracking-wider">
-          Draft or Send Response
-        </h3>
+      {/* ── Reply editor ───────────────────────────────────── */}
+      <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500">
+            Draft / Send Response
+          </h3>
+        </div>
         <ReplyEditor
-          key={editorText} // Re-render when draft applied
+          key={editorText}
           initialContent={editorText}
           aiDraftId={appliedDraftId}
           isSubmitting={replyMutation.isPending}
