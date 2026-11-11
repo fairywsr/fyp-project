@@ -6,8 +6,6 @@
 *.env
 !.env.example
 !.env.*.example
-backend/.env
-frontend/.env
 *.pem
 *.key
 *.cert
@@ -16,15 +14,10 @@ frontend/.env
 # ==============================================================================
 # Backend - Python & FastAPI
 # ==============================================================================
-# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-backend/app/**/__pycache__/
-backend/**/__pycache__/
-
-# C extensions
 *.obj
 *.o
 *.pyd
@@ -32,19 +25,16 @@ backend/**/__pycache__/
 # Virtual Environments
 venv/
 .venv/
-env/
-ENV/
+*/backend/.env/
+/backend/ENV/
 env.bak/
 venv.bak/
-backend/venv/
 
 # SQLite & Databases / Local storage
 *.db
 *.db-journal
 *.sqlite
 *.sqlite3
-sqr.db
-backend/sqr.db
 
 # Alembic & Migrations local logs / temp
 migrations.log
@@ -62,22 +52,20 @@ coverage.xml
 *.py,cover
 .hypothesis/
 .pytest_cache/
-cover/
 
-# Python packaging & distribution
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
+# Python packaging & distribution (anchored to backend/ so they never match
+# frontend folders such as frontend/src/lib/)
+/backend/build/
+/backend/dist/
+/backend/lib/
+/backend/lib64/
+/backend/var/
+/backend/parts/
+/backend/sdist/
+/backend/wheels/
+/backend/eggs/
+/backend/.eggs/
+/backend/downloads/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -86,27 +74,16 @@ MANIFEST
 # ==============================================================================
 # Frontend - Node, React, Vite
 # ==============================================================================
-# Dependencies
 node_modules/
-frontend/node_modules/
-
-# Production builds
-dist/
-dist-ssr/
-frontend/dist/
-frontend/dist-ssr/
-build/
-
-# Vite / Frontend build and runtime caches
+/frontend/dist/
+/frontend/dist-ssr/
+/frontend/build/
 .vite/
-frontend/.vite/
 .eslintcache
 .stylelintcache
 
-# Local environment and override files
+# Local override files
 *.local
-.env.local
-.env.*.local
 
 # npm, yarn, and pnpm debug logs
 npm-debug.log*
@@ -116,13 +93,12 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # Test coverage
-coverage/
+/frontend/coverage/
 .nyc_output/
 
 # ==============================================================================
 # General Logs & Runtime Data
 # ==============================================================================
-logs/
 *.log
 *.pid
 *.seed
@@ -131,7 +107,6 @@ logs/
 # ==============================================================================
 # Operating System & Editor / IDE files
 # ==============================================================================
-# OS Files
 .DS_Store
 .DS_Store?
 ._*
@@ -141,7 +116,6 @@ ehthumbs.db
 Thumbs.db
 desktop.ini
 
-# Editors & IDEs
 .idea/
 .vscode/*
 !.vscode/settings.json
@@ -160,5 +134,7 @@ desktop.ini
 # Project-Specific Ignores
 # ==============================================================================
 /whatsapp-gateway/
+# NOTE: this also removes the doc from the repo once untracked (see commands).
+# Delete these two lines if the developer document should stay on GitHub.
 /Smart Query Routing — Developer Document.md
-Smart Query Routing — Developer Document.md
+/docs/Smart Query Routing — Developer Document.md
