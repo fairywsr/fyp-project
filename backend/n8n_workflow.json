@@ -1,0 +1,249 @@
+{
+    "name": "WF-1 Smart Query Intake (Email + Web Form + AI)",
+    "nodes": [
+        {
+            "parameters": {
+                "pollTimes": {
+                    "item": [
+                        {
+                            "mode": "everyMinute"
+                        }
+                    ]
+                },
+                "simple": false,
+                "filters": {
+                    "labelIds": [
+                        "INBOX",
+                        "UNREAD"
+                    ]
+                },
+                "options": {}
+            },
+            "name": "Gmail Trigger",
+            "type": "n8n-nodes-base.gmailTrigger",
+            "typeVersion": 1.2,
+            "position": [
+                0,
+                -120
+            ],
+            "credentials": {
+                "gmailOAuth2": {
+                    "id": "",
+                    "name": "Gmail account"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "httpMethod": "POST",
+                "path": "web-form",
+                "responseMode": "lastNode",
+                "options": {}
+            },
+            "name": "Web Form Webhook",
+            "type": "n8n-nodes-base.webhook",
+            "typeVersion": 2,
+            "position": [
+                0,
+                120
+            ],
+            "webhookId": "web-form-in"
+        },
+        {
+            "parameters": {
+                "jsCode": "// Gmail -> common shape\nconst out = [];\nfor (const item of $input.all()) {\n  const j = item.json;\n  const sender = ((j.from && j.from.value && j.from.value[0] && j.from.value[0].address) || '').toLowerCase().trim();\n  let text = j.text || (j.html || '').replace(/<style[\\s\\S]*?<\\/style>/gi, '').replace(/<br\\s*\\/?>/gi, '\\n').replace(/<[^>]+>/g, ' ');\n  text = text.split(/\\r?\\nOn .{5,120} wrote:/)[0].split(/\\r?\\n-- ?\\r?\\n/)[0]\n    .replace(/^>.*$/gm, '').replace(/[ \\t]+/g, ' ').replace(/\\n{3,}/g, '\\n\\n').trim();\n  if (!sender || !text) continue;\n  out.push({ json: { query: {\n    channel: 'email', sender, subject: j.subject || null, text,\n    external_id: String(j.id), received_at: j.date ? new Date(j.date).toISOString() : null\n  }}});\n}\nreturn out;"
+            },
+            "name": "Normalize Email",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                260,
+                -120
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Web form webhook -> common shape\n// Expected body: { email, subject, message }\nconst b = $input.first().json.body || $input.first().json;\nconst sender = String(b.email || '').toLowerCase().trim();\nconst text = String(b.message || b.text || '').trim();\nif (!sender || !text) throw new Error('email and message are required');\nreturn [{ json: { query: {\n  channel: 'web_form', sender, subject: b.subject || null, text,\n  external_id: null, received_at: new Date().toISOString()\n}}}];"
+            },
+            "name": "Normalize Form",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                260,
+                120
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Fetch departments + courses (public endpoints) and build the Gemini request\nconst BACKEND = 'https://YOUR-BACKEND-URL';   // <- same URL as in the last node\nconst departments = await this.helpers.httpRequest({ method: 'GET', url: BACKEND + '/api/v1/departments', json: true });\nconst courses = await this.helpers.httpRequest({ method: 'GET', url: BACKEND + '/api/v1/courses', json: true });\n\nconst deptLines = departments.map(d => `- dept_id ${d.id}: ${d.name} (${d.code})`).join('\\n');\nconst courseLines = courses.map(c => `- course_id ${c.id}: ${c.code} ${c.name} (dept_id ${c.dept_id})`).join('\\n');\nconst ctx = { dept_ids: departments.map(d => d.id), courses: Object.fromEntries(courses.map(c => [c.id, c.dept_id])) };\n\nreturn $input.all().map(item => {\n  const q = item.json.query;\n  const prompt = `You are the query router of a university helpdesk. Decide which department and (if any) course this student message belongs to.\n\nDEPARTMENTS:\n${deptLines}\n\nCOURSES:\n${courseLines}\n\nRULES:\n- dept_id MUST be one of the listed departments, or null if you really cannot tell.\n- course_id MUST be one of the listed courses and belong to the chosen department. Use null if no course is clearly meant.\n- priority: low, medium, high or urgent (urgent = deadline/exam within 48h or a serious problem).\n- confidence: number 0 to 1 (how sure you are about dept_id).\n- reasoning: one short sentence.\n- draft_reply: a short, polite acknowledgement reply to the student (max 3 sentences), in the same language as the message. Do not promise outcomes.\n\nReturn ONLY JSON: {\"dept_id\": number|null, \"course_id\": number|null, \"priority\": \"low|medium|high|urgent\", \"confidence\": number, \"reasoning\": string, \"draft_reply\": string}\n\nSTUDENT MESSAGE\nSubject: ${q.subject || '(none)'}\n${q.text.slice(0, 4000)}`;\n  return { json: {\n    query: q,\n    ctx,\n    gemini_body: { contents: [{ parts: [{ text: prompt }] }],\n                   generationConfig: { responseMimeType: 'application/json', temperature: 0.1 } }\n  }};\n});"
+            },
+            "name": "Build AI Request",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                540,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+                "authentication": "genericCredentialType",
+                "genericAuthType": "httpHeaderAuth",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify($json.gemini_body) }}",
+                "options": {
+                    "timeout": 60000,
+                    "response": {
+                        "response": {
+                            "neverError": true
+                        }
+                    }
+                }
+            },
+            "name": "Gemini Classify",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                800,
+                0
+            ],
+            "credentials": {
+                "httpHeaderAuth": {
+                    "id": "",
+                    "name": "Gemini API Key"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Combine query + Gemini answer. If Gemini failed, send the query without AI fields\n// (the backend then falls back to its keyword rules).\nconst src = $('Build AI Request').all();\nreturn $input.all().map((item, i) => {\n  const { query, ctx } = src[i].json;\n  const payload = { ...query };\n  try {\n    const raw = item.json.candidates[0].content.parts[0].text;\n    const ai = JSON.parse(raw.replace(/^```json\\s*|```$/g, ''));\n    const deptOk = Number.isInteger(ai.dept_id) && ctx.dept_ids.includes(ai.dept_id);\n    if (deptOk) {\n      payload.dept_id = ai.dept_id;\n      if (Number.isInteger(ai.course_id) && ctx.courses[ai.course_id] === ai.dept_id) payload.course_id = ai.course_id;\n      if (['low', 'medium', 'high', 'urgent'].includes(ai.priority)) payload.priority = ai.priority;\n      const conf = Number(ai.confidence);\n      payload.confidence = Number.isFinite(conf) ? Math.max(0, Math.min(1, conf)) : 0.5;\n      if (ai.reasoning) payload.ai_reasoning = String(ai.reasoning).slice(0, 300);\n    }\n    if (ai.draft_reply) payload.ai_draft = String(ai.draft_reply).slice(0, 1500);\n  } catch (e) { /* Gemini failed or returned bad JSON -> keyword fallback in backend */ }\n  return { json: payload };\n});"
+            },
+            "name": "Merge AI Result",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1060,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "method": "POST",
+                "url": "https://YOUR-BACKEND-URL/api/v1/internal/channels/ingest",
+                "authentication": "genericCredentialType",
+                "genericAuthType": "httpHeaderAuth",
+                "sendBody": true,
+                "specifyBody": "json",
+                "jsonBody": "={{ JSON.stringify($json) }}",
+                "options": {
+                    "timeout": 30000,
+                    "response": {
+                        "response": {
+                            "neverError": true
+                        }
+                    }
+                }
+            },
+            "name": "Send to Backend",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4.2,
+            "position": [
+                1320,
+                0
+            ],
+            "credentials": {
+                "httpHeaderAuth": {
+                    "id": "",
+                    "name": "Backend X-Service-Key"
+                }
+            }
+        }
+    ],
+    "connections": {
+        "Gmail Trigger": {
+            "main": [
+                [
+                    {
+                        "node": "Normalize Email",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Web Form Webhook": {
+            "main": [
+                [
+                    {
+                        "node": "Normalize Form",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Normalize Email": {
+            "main": [
+                [
+                    {
+                        "node": "Build AI Request",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Normalize Form": {
+            "main": [
+                [
+                    {
+                        "node": "Build AI Request",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Build AI Request": {
+            "main": [
+                [
+                    {
+                        "node": "Gemini Classify",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Gemini Classify": {
+            "main": [
+                [
+                    {
+                        "node": "Merge AI Result",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Merge AI Result": {
+            "main": [
+                [
+                    {
+                        "node": "Send to Backend",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "active": false,
+    "settings": {
+        "executionOrder": "v1"
+    },
+    "tags": []
+}
